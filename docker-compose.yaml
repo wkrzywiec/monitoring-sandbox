@@ -1,0 +1,39 @@
+version: '3.9'
+
+services:
+
+  jvm:
+    build: ./app
+    container_name: jvm-app
+    volumes: 
+      - ./recordings:/recordings
+    ports:
+      - 8080:8080
+    entrypoint: ["java","-XX:StartFlightRecording:filename=/recordings/recording.jfr,dumponexit=true","-jar","app.jar"]
+
+  prometheus:
+    image: prom/prometheus:v2.30.0
+    container_name: prometheus
+    ports:
+      - 2000:9090
+    volumes:
+      - prometheus:/prometheus
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:8.1.4
+    container_name: grafana
+    ports:
+      - 3000:3000
+    environment:
+      - PROMETHEUS_URL=http://prometheus:9090
+      - DS_PROMETHEUS=prometheus
+    volumes:
+      - ./infra/grafana/config.ini:/etc/grafana/config.ini
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning
+      - ./infra/grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus
+
+volumes:
+  prometheus:
