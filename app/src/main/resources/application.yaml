@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: jvm-app
+
+management:
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  endpoints:
+    web:
+      exposure:
+        include: '*'
